@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Store Map</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h2, h3 {
+      color: #333;
+    }
+
+    #container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 60%;
+      max-width: 400px;
+      margin: 10px 5px 20px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 16px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 5px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #responseText {
+      margin: 15px 0;
+      font-size: 1rem;
+      color: #444;
+      font-weight: bold;
+    }
+
+    #store-map {
+      width: 100%;
+      max-width: 800px;
+      height: 500px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background: url('store_layout.jpg') no-repeat center;
+      background-size: contain;
+      position: relative;
+      margin: 20px auto;
+    }
+
+    .highlight {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border: 2px solid red;
+      border-radius: 5px;
+      background-color: rgba(255, 0, 0, 0.3);
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h2>🛒 Smart Store Map</h2>
+
+    <div>
+      <input type="text" id="search" placeholder="Enter items (e.g. milk, bread)" />
+      <button onclick="highlightItem()">Find</button>
+    </div>
+
+    <h3>🤖 Ask the assistant:</h3>
+    <div>
+      <input type="text" id="chatbox" placeholder="e.g., Where can I find rice and eggs?" />
+      <button onclick="askAssistant()">Ask</button>
+      <button onclick="startSpeech()">🎤 Speak</button>
+    </div>
+
+    <div id="responseText"></div>
+
+    <div id="store-map"></div>
+  </div>
+
+  <script>
+    const itemLocations = {
+      "milk": { top: 30, left: 700 },
+      "eggs": { top: 50, left: 710 },
+      "bread": { top: 180, left: 690 },
+      "rice": { top: 290, left: 650 },
+      "meat": { top: 360, left: 730 },
+      "electronics": { top: 80, left: 220 },
+      "toys": { top: 60, left: 280 },
+      "fashion": { top: 160, left: 400 },
+      "pharmacy": { top: 360, left: 200 }
+    };
+
+    function clearHighlights() {
+      document.getElementById('store-map').innerHTML = "";
+    }
+
+    function highlightItems(items) {
+      clearHighlights();
+      const map = document.getElementById('store-map');
+      items.forEach(item => {
+        if (itemLocations[item]) {
+          const box = document.createElement('div');
+          box.className = "highlight";
+          box.style.top = itemLocations[item].top + "px";
+          box.style.left = itemLocations[item].left + "px";
+          map.appendChild(box);
+        }
+      });
+    }
+
+    function highlightItem() {
+      const input = document.getElementById('search').value.toLowerCase();
+      const items = input.split(',').map(i => i.trim());
+      highlightItems(items);
+    }
+
+    async function askAssistant() {
+      const query = document.getElementById('chatbox').value;
+      const res = await fetch('http://127.0.0.1:5000/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.items.length > 0) {
+          highlightItems(data.items);
+          document.getElementById("responseText").innerText = data.directions;
+          speak(data.directions);
+        } else {
+          alert("No known items found in response.");
+        }
+      } else {
+        alert("AI assistant failed. Is your Flask server running?");
+      }
+    }
+
+    function startSpeech() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        document.getElementById("chatbox").value = event.results[0][0].transcript;
+        askAssistant();
+      };
+    }
+
+    function speak(text) {
+      const utter = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utter);
+    }
+  </script>
+</body>
+</html>

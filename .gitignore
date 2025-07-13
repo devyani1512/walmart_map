@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+
+# Environment
+.env
+venv/
+env/
+*.env
+*.sqlite3
+
+# VSCode / PyCharm
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Cache
+*.cache/
+.cache/
+
+# Node / Frontend (optional if using npm or frontend tools)
+node_modules/
+dist/
+build/
+
+# Render deploy artifacts
+*.zip
