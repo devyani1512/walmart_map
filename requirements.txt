@@ -1,6 +1,4 @@
-qrcode[pil]
-pillow>=10.0.0
-Flask==2.3.3
-openai==0.28
-python-dotenv
+flask
 flask-cors
+openai>=1.0.0
+python-dotenv
